@@ -40,11 +40,11 @@ import type { PathOptions } from "leaflet";
 const AREA_NAMES = Object.keys(SEA_AREAS);
 const ROTATION_MS = 5000;
 
-// 울진/삼척 연안 모니터링 격자 (0.0333° × 0.0333° 셀, 24열 × 30행 — 기존 8×10 각 셀을 9등분)
+// 울진/삼척 연안 모니터링 격자 (0.0333° × 0.0333° 셀, 24열 × 15행 — lat 36.80~37.30)
 const ULJIN_GRID: GeoJSON.FeatureCollection = (() => {
   const CS = 0.10 / 3;
   const features: GeoJSON.Feature[] = [];
-  for (let r = 0; r < 30; r++) {
+  for (let r = 0; r < 15; r++) {
     for (let c = 0; c < 24; c++) {
       const lon = Math.round((129.00 + c * CS) * 1000) / 1000;
       const lat = Math.round((36.80 + r * CS) * 1000) / 1000;

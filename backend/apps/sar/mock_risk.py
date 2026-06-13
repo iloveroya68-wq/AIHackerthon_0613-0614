@@ -46,11 +46,11 @@ class MockRiskEngine:
                 lat0 = min_lat + row * cell_h
                 lon1, lat1 = lon0 + cell_w, lat0 + cell_h
 
-                # Center cells → higher risk
+                # Center cells → slightly higher, but overall calm baseline
                 cx = abs(col - (cols - 1) / 2) / ((cols - 1) / 2)  # 0=center, 1=edge
                 cy = abs(row - (rows - 1) / 2) / ((rows - 1) / 2)
-                base_dri = 0.8 - (cx + cy) * 0.25
-                dri = max(0.05, min(0.99, base_dri + rng.uniform(-0.12, 0.12)))
+                base_dri = 0.28 - (cx + cy) * 0.10
+                dri = max(0.05, min(0.55, base_dri + rng.uniform(-0.08, 0.08)))
                 area_dri_scores.append(dri)
 
                 if dri >= 0.65:
@@ -84,9 +84,9 @@ class MockRiskEngine:
         )
         peak_time = time_range_start + peak_offset
 
-        wind_ms = round(rng.uniform(8.0, 18.0), 1)
-        wave_m = round(rng.uniform(1.0, 2.5), 1)
-        current_kt = round(rng.uniform(0.5, 3.0), 2)
+        wind_ms = round(rng.uniform(3.5, 9.0), 1)
+        wave_m = round(rng.uniform(0.3, 1.2), 1)
+        current_kt = round(rng.uniform(0.3, 1.5), 2)
 
         has_tidal = rng.random() > 0.3
         tidal_offset = timedelta(minutes=rng.randint(15, 90))
@@ -100,7 +100,7 @@ class MockRiskEngine:
             ),
             1,
         )
-        vessels_at_risk = rng.randint(80, 200)
+        vessels_at_risk = rng.randint(5, 30)
 
         return RiskForecastResult(
             forecasted_at=datetime.now(tz=timezone.utc),
@@ -115,25 +115,25 @@ class MockRiskEngine:
             dri_percentile=round(overall_dri * 100 * rng.uniform(0.9, 1.1), 1),
             risk_causes=[
                 RiskCause(
-                    factor="조류 반전",
-                    description=f"{peak_time.strftime('%H:%M')} ±20분 조류 반전 예정",
-                    severity=RiskLevel.HIGH,
+                    factor="풍속",
+                    description=f"풍속 {wind_ms} m/s — 정상 운항 범위",
+                    severity=RiskLevel.WATCH,
                 ),
                 RiskCause(
-                    factor="풍속 강화",
-                    description=f"북서풍 최대 {wind_ms} m/s 예보",
-                    severity=RiskLevel.CAUTION if wind_ms < 15 else RiskLevel.HIGH,
+                    factor="파고",
+                    description=f"유의파고 {wave_m} m — 정상 수준",
+                    severity=RiskLevel.WATCH,
                 ),
                 RiskCause(
-                    factor="파고 상승",
-                    description=f"유의파고 최대 {wave_m} m 예상",
-                    severity=RiskLevel.CAUTION,
+                    factor="조류",
+                    description=f"{current_kt} kt — 정상 범위",
+                    severity=RiskLevel.WATCH,
                 ),
             ],
             recommended_actions=[
-                RecommendedAction(priority=1, action="순찰정 사전 배치", target="고위험 해역 북서 경계선"),
-                RecommendedAction(priority=2, action="V-Pass 주의 알림 발송", target=f"조업 선박 {vessels_at_risk}척"),
-                RecommendedAction(priority=3, action="출항 주의 안내 송출", target="해양경계방송"),
+                RecommendedAction(priority=1, action="기상 모니터링 유지", target="3시간 간격 재분석"),
+                RecommendedAction(priority=2, action="V-Pass 위치 확인", target=f"해역 내 조업 선박 {vessels_at_risk}척"),
+                RecommendedAction(priority=3, action="VHF Ch.16 정기 기상 안내", target="해당 해역 전 선박"),
             ],
             max_wind_speed_ms=wind_ms,
             max_wave_height_m=wave_m,
