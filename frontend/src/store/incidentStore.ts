@@ -36,7 +36,6 @@ export const useIncidentStore = create<IncidentState>((set) => ({
   predictionRequest: {
     vessel_type: "소형어선",
     simulation_hours: 24,
-    last_coordinate: { lon: 126.2, lat: 34.5 },
     last_seen_at: new Date().toISOString(),
   },
   setPredictionRequest: (req) =>

@@ -67,15 +67,14 @@ export function InputPanel() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (!predictionRequest.last_coordinate) {
+      setError("최종 신호 위치를 지도에서 선택하거나 좌표를 입력해 주세요.");
+      return;
+    }
     setIsSubmitting(true);
     try {
-      const defaultCoord = { lon: 126.2, lat: 34.5 };
-      const actualCoord = predictionRequest.last_coordinate ?? defaultCoord;
-      if (!predictionRequest.last_coordinate) {
-        setPredictionRequest({ last_coordinate: actualCoord });
-      }
       const req = {
-        last_coordinate: actualCoord,
+        last_coordinate: predictionRequest.last_coordinate,
         last_seen_at: predictionRequest.last_seen_at ?? new Date().toISOString(),
         vessel_type: vesselType,
         vessel_id: predictionRequest.vessel_id ?? undefined,
