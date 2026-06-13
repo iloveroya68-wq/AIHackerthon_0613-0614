@@ -20,6 +20,15 @@ function stripMd(text: string): string {
     .trim();
 }
 
+function toBullets(text: string): string[] {
+  const cleaned = stripMd(text);
+  return cleaned
+    .split(/(?<=[다요됩])\. ?/)
+    .map(s => s.trim().replace(/^[-•·]\s*/, ''))
+    .filter(s => s.length > 5)
+    .map(s => (s.endsWith('.') ? s : `${s}.`));
+}
+
 function windMeta(ms: number): { label: string; color: string } {
   if (ms >= 20) return { label: "폭풍", color: "#ef4444" };
   if (ms >= 15) return { label: "강풍", color: "#f97316" };
@@ -57,18 +66,21 @@ const SECTION_META = [
 ];
 
 function SectionCard({
-  section, meta,
+  section, meta, stats = [],
 }: {
   section: BriefingResult["sections"][number];
   meta: typeof SECTION_META[number];
+  stats?: { label: string; value: string }[];
 }) {
+  const bullets = toBullets(section.body);
   return (
     <div
-      className="rounded-lg border overflow-hidden"
+      className="rounded-xl border overflow-hidden flex flex-col"
       style={{ background: meta.bg, borderColor: meta.border }}
     >
+      {/* 헤더 */}
       <div
-        className="flex items-center gap-3 px-4 py-2.5 border-b"
+        className="flex items-center gap-3 px-4 py-2.5 border-b shrink-0"
         style={{ borderColor: meta.border, background: `${meta.color}08` }}
       >
         <span
@@ -79,8 +91,43 @@ function SectionCard({
         </span>
         <p className="flex-1 text-sm font-semibold text-slate-100 leading-snug">{section.title}</p>
       </div>
-      <div className="px-4 py-3.5">
-        <p className="text-[13px] text-slate-300 leading-relaxed">{stripMd(section.body)}</p>
+
+      {/* 지표 칩 */}
+      {stats.length > 0 && (
+        <div
+          className="grid border-b shrink-0"
+          style={{
+            gridTemplateColumns: `repeat(${stats.length}, 1fr)`,
+            borderColor: meta.border,
+            background: `${meta.color}06`,
+          }}
+        >
+          {stats.map(({ label, value }, i) => (
+            <div
+              key={label}
+              className="flex flex-col items-center py-2.5 px-2 gap-0.5"
+              style={{ borderLeft: i > 0 ? `1px solid ${meta.border}` : undefined }}
+            >
+              <span className="text-[9px] text-slate-500 uppercase tracking-wide whitespace-nowrap">{label}</span>
+              <span className="text-sm font-bold font-mono leading-none" style={{ color: meta.color }}>{value}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 불릿 본문 */}
+      <div className="px-4 py-3 flex-1">
+        <ul className="flex flex-col gap-1.5">
+          {bullets.map((line, i) => (
+            <li key={i} className="flex gap-2 text-[12px] text-slate-300 leading-relaxed">
+              <span
+                className="shrink-0 w-1 h-1 rounded-full mt-[7px]"
+                style={{ background: `${meta.color}bb` }}
+              />
+              <span>{line}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
@@ -410,18 +457,48 @@ function BriefingLayout({
             </div>
           )}
 
-          {/* Briefing sections */}
-          {briefing && (
-            <div className="flex flex-col gap-3">
-              {briefing.sections.map((section, i) => (
-                <SectionCard
-                  key={section.section_id}
-                  section={section}
-                  meta={SECTION_META[i] ?? SECTION_META[0]}
-                />
-              ))}
-            </div>
-          )}
+          {/* Briefing sections — 2×2 grid */}
+          {briefing && (() => {
+            const dv = prediction.drift_vector;
+            const features = prediction.search_zones.features as any[];
+            const zone1 = features.find((f: any) => f.properties.priority === 1);
+            const z1prob = zone1 ? Math.round(zone1.properties.cumulative_probability * 100) : 0;
+            const distKm = (dv.speed_knots * 1.852 * prediction.time_horizon_hours).toFixed(1);
+            const sectionStats: Record<number, { label: string; value: string }[]> = {
+              1: [
+                { label: "존재 확률", value: `${z1prob}%` },
+                { label: "조류", value: `${dv.current_speed_knots.toFixed(1)}kt` },
+                { label: "풍속", value: `${dv.wind_speed_ms.toFixed(1)}m/s` },
+              ],
+              2: [
+                { label: "표류 거리", value: `${distKm}km` },
+                { label: "예측 시간", value: `+${prediction.time_horizon_hours}h` },
+                { label: "신뢰도", value: briefing.confidence_label },
+              ],
+              3: [
+                { label: "누적 확률", value: `${z1prob}%` },
+                { label: "수색 면적", value: zone1 ? `${zone1.properties.area_km2.toFixed(1)}km²` : "—" },
+                { label: "반경", value: zone1 ? `${zone1.properties.radius_km.toFixed(1)}km` : "—" },
+              ],
+              4: [
+                { label: "경보 기준", value: "15m/s" },
+                { label: "현재 풍속", value: `${dv.wind_speed_ms.toFixed(1)}m/s` },
+                { label: "상태", value: dv.wind_speed_ms >= 15 ? "경보" : dv.wind_speed_ms >= 10 ? "주의" : "정상" },
+              ],
+            };
+            return (
+              <div className="grid grid-cols-2 gap-3">
+                {briefing.sections.map((section, i) => (
+                  <SectionCard
+                    key={section.section_id}
+                    section={section}
+                    meta={SECTION_META[i] ?? SECTION_META[0]}
+                    stats={sectionStats[section.section_id] ?? []}
+                  />
+                ))}
+              </div>
+            );
+          })()}
 
           {/* SAR Chatbot */}
           {briefing && (
