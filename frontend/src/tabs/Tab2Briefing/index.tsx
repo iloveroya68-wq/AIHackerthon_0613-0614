@@ -11,6 +11,15 @@ function deg2compass(deg: number) {
   return DIRS16[Math.round(((deg % 360) + 360) / 22.5) % 16];
 }
 
+function stripMd(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/gs, '$1')
+    .replace(/\*(.+?)\*/gs, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^`{1,3}[^\n]*\n?/gm, '')
+    .trim();
+}
+
 function windMeta(ms: number): { label: string; color: string } {
   if (ms >= 20) return { label: "폭풍", color: "#ef4444" };
   if (ms >= 15) return { label: "강풍", color: "#f97316" };
@@ -71,7 +80,7 @@ function SectionCard({
         <p className="flex-1 text-sm font-semibold text-slate-100 leading-snug">{section.title}</p>
       </div>
       <div className="px-4 py-3.5">
-        <p className="text-[13px] text-slate-300 leading-relaxed">{section.body}</p>
+        <p className="text-[13px] text-slate-300 leading-relaxed">{stripMd(section.body)}</p>
       </div>
     </div>
   );
@@ -448,15 +457,16 @@ function buildSystemPrompt(
     ? Math.round((z2.properties.cumulative_probability - z1.properties.cumulative_probability) * 100)
     : 0;
 
-  return `당신은 대한민국 해양경찰 수색구조(SAR) 현장 작전 지원 AI입니다.
+  return `당신은 대한민국 해양경찰 수색구조(SAR) 현장 작전 지원 전문가입니다.
 
 [역할과 원칙]
 - 현장 지휘관(함장·작전관)에게 즉시 적용 가능한 답변을 제공합니다.
 - 반드시 아래 [현재 사건 데이터]를 기반으로 답변하고, 수치는 구체적으로 인용하세요.
-- 단계별 행동 지침(▶ 형식), 중요 수치 강조, 판단 근거를 함께 제시하세요.
+- 단계별 행동 지침은 ▶ 기호를 사용해 구분하세요.
 - "~할 수 있습니다" 같은 모호한 표현 대신 "~하십시오", "~권고합니다" 등 명확한 지시형으로 답변하세요.
 - 답변 길이: 질문 성격에 따라 조절하되, 핵심 행동 지침은 반드시 포함하세요.
 - 언어: 한국어, 해양경찰 작전 용어 사용.
+- **, *, #, ## 같은 마크다운 기호는 절대 사용하지 마세요. 강조가 필요하면 「 」또는 [ ] 괄호를 사용하세요.
 
 [현재 사건 데이터]
 선종: ${predictionRequest.vessel_type ?? "미상"}
@@ -602,7 +612,7 @@ function SARChatbot({
                     : { background: "rgba(15,23,42,0.8)", border: "1px solid rgba(51,65,85,0.5)", color: "#cbd5e1", borderRadius: "4px 12px 12px 12px" }
                 }
               >
-                {msg.text}
+                {msg.role === "model" ? stripMd(msg.text) : msg.text}
               </div>
             </div>
           ))}
