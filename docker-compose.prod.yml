@@ -27,6 +27,7 @@ services:
     volumes: !override
       - ${DRIFT_DATA_HOST_PATH:-./data/modeling_inputs}:/data/modeling_inputs:ro
       - ./rag_data:/rag_data:ro
+      - ./.tmp:/tmp_data:ro
     environment:
       DEBUG: "False"
       DJANGO_ALLOWED_HOSTS: "${DJANGO_ALLOWED_HOSTS:-*}"
