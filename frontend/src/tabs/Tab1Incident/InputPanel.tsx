@@ -85,7 +85,7 @@ export function InputPanel() {
       };
       const result = await api.createPrediction(req);
       setPrediction(result);
-      setSelectedTimeStepHour(result.time_horizon_hours);
+      setSelectedTimeStepHour(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "예측 요청 실패");
     } finally {
