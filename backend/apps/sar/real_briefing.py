@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 _DIR_NAMES = ["북", "북동", "동", "남동", "남", "남서", "서", "북서"]
 _FALLBACK_DISCLAIMER = (
     "본 리포트는 AI 분석 결과 기반이며, 최종 판단은 현장 지휘관에게 있습니다. "
-    "상황 변화에 따라 내용은 변경될 수 있습니다. 吏?섍?"
+    "상황 변화에 따라 내용은 변경될 수 있습니다."
 )
 
 
@@ -115,7 +115,7 @@ def _build_messages(
     {{"section_id": 3, "title": "수색 구역 권고 근거", "body": "...", "sources": ["L2", "RAG"]}},
     {{"section_id": 4, "title": "기상 악화 및 대체 수색 방안", "body": "...", "sources": ["L2", "L4"]}}
   ],
-  "disclaimer": "본 리포트는 AI 분석 결과 기반이며, 최종 판단은 현장 지휘관에게 있습니다. 상황 변화에 따라 내용은 변경될 수 있습니다. 吏?섍?"
+  "disclaimer": "본 리포트는 AI 분석 결과 기반이며, 최종 판단은 현장 지휘관에게 있습니다. 상황 변화에 따라 내용은 변경될 수 있습니다."
 }}"""
 
     return [
@@ -195,9 +195,7 @@ class RealBriefingEngine:
         ]
 
         disclaimer = llm_data.get("disclaimer") or _FALLBACK_DISCLAIMER
-        if "吏?섍?" not in disclaimer:
-            disclaimer = f"{disclaimer} 吏?섍?"
-
+        
         try:
             return BriefingResult(
                 request_id=engine.request_id,
