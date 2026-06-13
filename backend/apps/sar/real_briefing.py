@@ -64,7 +64,7 @@ def _build_messages(
         "경험 많은 해경 전문가처럼 자연스럽고 간결한 한국어로 브리핑을 작성하세요.\n"
         "규칙:\n"
         "1. 숫자는 아래 engine_result와 RAG 근거에 있는 값만 사용하세요.\n"
-        "2. 과거 유사 사건 비교에는 제공된 incident_id를 인용하세요.\n"
+        "2. 과거 유사 사례는 몇 건이 검색됐는지만 언급하고, incident_id나 파일명은 나열하지 마세요.\n"
         "3. 수색구역이 없다고 제공되면 면적이나 확률을 임의로 만들지 마세요.\n"
         "4. 내부 보정 모델, 학습 데이터, 학습 레코드 수는 절대 언급하지 마세요.\n"
         "5. 유효한 JSON 객체만 반환하세요. 코드블록, 설명 문장은 금지입니다.\n"
@@ -111,7 +111,7 @@ def _build_messages(
   "confidence_label": "높음 또는 보통 또는 낮음",
   "sections": [
     {{"section_id": 1, "title": "현재 표류 예측 요약", "body": "...", "sources": ["L2"]}},
-    {{"section_id": 2, "title": "과거 유사 사고 비교", "body": "참조한 incident_id를 인용하여 작성...", "sources": ["RAG"]}},
+    {{"section_id": 2, "title": "과거 유사 사고 비교", "body": "총 N건의 유사 사례가 검색됐다는 사실과 공통적인 패턴(기상 조건, 표류 거리 등)을 1~2문장으로 요약. 파일명·incident_id 나열 금지.", "sources": ["RAG"]}},
     {{"section_id": 3, "title": "수색 구역 권고 근거", "body": "...", "sources": ["L2", "RAG"]}},
     {{"section_id": 4, "title": "기상 악화 및 대체 수색 방안", "body": "...", "sources": ["L2", "L4"]}}
   ],
