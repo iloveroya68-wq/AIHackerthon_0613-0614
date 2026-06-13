@@ -1,0 +1,221 @@
+{
+  "$defs": {
+    "RecommendedAction": {
+      "properties": {
+        "priority": {
+          "minimum": 1,
+          "title": "Priority",
+          "type": "integer"
+        },
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "target": {
+          "description": "e.g. '순찰정 사전 배치', 'V-Pass 주의 알림'",
+          "title": "Target",
+          "type": "string"
+        }
+      },
+      "required": [
+        "priority",
+        "action",
+        "target"
+      ],
+      "title": "RecommendedAction",
+      "type": "object"
+    },
+    "RiskCause": {
+      "properties": {
+        "factor": {
+          "description": "e.g. '조류 반전', '풍속 강화', '파고 상승'",
+          "title": "Factor",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/RiskLevel"
+        }
+      },
+      "required": [
+        "factor",
+        "description",
+        "severity"
+      ],
+      "title": "RiskCause",
+      "type": "object"
+    },
+    "RiskLevel": {
+      "enum": [
+        "고위험",
+        "주의",
+        "관찰"
+      ],
+      "title": "RiskLevel",
+      "type": "string"
+    },
+    "VesselType": {
+      "description": "Vessel / object-in-water type. Controls Leeway coefficient in L1.",
+      "enum": [
+        "소형어선",
+        "표준어선",
+        "구명조끼착용자",
+        "구명뗏목",
+        "레저보트"
+      ],
+      "title": "VesselType",
+      "type": "string"
+    }
+  },
+  "description": "P1 proactive risk heatmap for a given area + time window.\nrisk_grid is a GeoJSON FeatureCollection of grid cells (Polygon features).\nEach feature's properties include 'risk_level' and 'dri_score'.\nEngine L3 model is reused for per-cell DRI scoring.",
+  "properties": {
+    "forecast_id": {
+      "title": "Forecast Id",
+      "type": "string"
+    },
+    "forecasted_at": {
+      "format": "date-time",
+      "title": "Forecasted At",
+      "type": "string"
+    },
+    "area_name": {
+      "description": "e.g. '연평도 인근 서해'",
+      "title": "Area Name",
+      "type": "string"
+    },
+    "bbox": {
+      "description": "[min_lon, min_lat, max_lon, max_lat]",
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "title": "Bbox",
+      "type": "array"
+    },
+    "time_range_start": {
+      "format": "date-time",
+      "title": "Time Range Start",
+      "type": "string"
+    },
+    "time_range_end": {
+      "format": "date-time",
+      "title": "Time Range End",
+      "type": "string"
+    },
+    "peak_risk_time": {
+      "format": "date-time",
+      "title": "Peak Risk Time",
+      "type": "string"
+    },
+    "vessel_types_targeted": {
+      "description": "Vessel types included in the forecast",
+      "items": {
+        "$ref": "#/$defs/VesselType"
+      },
+      "minItems": 1,
+      "title": "Vessel Types Targeted",
+      "type": "array"
+    },
+    "risk_grid": {
+      "additionalProperties": true,
+      "description": "GeoJSON FeatureCollection of grid-cell polygons with DRI scores",
+      "title": "Risk Grid",
+      "type": "object"
+    },
+    "dri_score": {
+      "description": "Area-wide Drift Risk Index",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Dri Score",
+      "type": "number"
+    },
+    "dri_percentile": {
+      "description": "Relative to 90-day history",
+      "maximum": 100.0,
+      "minimum": 0.0,
+      "title": "Dri Percentile",
+      "type": "number"
+    },
+    "risk_causes": {
+      "items": {
+        "$ref": "#/$defs/RiskCause"
+      },
+      "minItems": 1,
+      "title": "Risk Causes",
+      "type": "array"
+    },
+    "recommended_actions": {
+      "items": {
+        "$ref": "#/$defs/RecommendedAction"
+      },
+      "minItems": 1,
+      "title": "Recommended Actions",
+      "type": "array"
+    },
+    "max_wind_speed_ms": {
+      "minimum": 0.0,
+      "title": "Max Wind Speed Ms",
+      "type": "number"
+    },
+    "max_wave_height_m": {
+      "minimum": 0.0,
+      "title": "Max Wave Height M",
+      "type": "number"
+    },
+    "max_current_speed_kt": {
+      "minimum": 0.0,
+      "title": "Max Current Speed Kt",
+      "type": "number"
+    },
+    "tidal_reversal_time": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Next tidal reversal within the forecast window, if applicable",
+      "title": "Tidal Reversal Time"
+    },
+    "vessels_at_risk_count": {
+      "description": "V-Pass vessels in high-risk zone",
+      "minimum": 0,
+      "title": "Vessels At Risk Count",
+      "type": "integer"
+    },
+    "high_risk_area_km2": {
+      "minimum": 0.0,
+      "title": "High Risk Area Km2",
+      "type": "number"
+    }
+  },
+  "required": [
+    "forecasted_at",
+    "area_name",
+    "bbox",
+    "time_range_start",
+    "time_range_end",
+    "peak_risk_time",
+    "vessel_types_targeted",
+    "risk_grid",
+    "dri_score",
+    "dri_percentile",
+    "risk_causes",
+    "recommended_actions",
+    "max_wind_speed_ms",
+    "max_wave_height_m",
+    "max_current_speed_kt",
+    "vessels_at_risk_count",
+    "high_risk_area_km2"
+  ],
+  "title": "RiskForecastResult",
+  "type": "object"
+}

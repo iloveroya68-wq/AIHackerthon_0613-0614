@@ -1,0 +1,103 @@
+{
+  "request_id": "a1b2c3d4-0001-0001-0001-a1b2c3d40001",
+  "computed_at": "2026-05-21T08:15:10+09:00",
+  "elapsed_seconds": 8.43,
+  "time_horizon_hours": 6,
+
+  "drift_vector": {
+    "direction_deg": 47.0,
+    "speed_knots": 0.93,
+    "current_speed_knots": 0.9,
+    "current_direction_deg": 45.0,
+    "wind_speed_ms": 9.8,
+    "wind_direction_deg": 315.0,
+    "leeway_coefficient": 0.032
+  },
+  "predicted_center": {
+    "lon": 124.461,
+    "lat": 38.021
+  },
+
+  "search_zones": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "priority": 1,
+          "cumulative_probability": 0.60,
+          "area_km2": 32.2,
+          "center_lon": 124.461,
+          "center_lat": 38.021,
+          "radius_km": 3.2
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [124.432, 38.000],
+            [124.490, 38.000],
+            [124.490, 38.042],
+            [124.432, 38.042],
+            [124.432, 38.000]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "priority": 2,
+          "cumulative_probability": 0.80,
+          "area_km2": 87.1,
+          "center_lon": 124.461,
+          "center_lat": 38.021,
+          "radius_km": 5.3
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [124.408, 37.978],
+            [124.514, 37.978],
+            [124.514, 38.064],
+            [124.408, 38.064],
+            [124.408, 37.978]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "priority": 3,
+          "cumulative_probability": 0.95,
+          "area_km2": 218.0,
+          "center_lon": 124.461,
+          "center_lat": 38.021,
+          "radius_km": 8.4
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [124.373, 37.947],
+            [124.549, 37.947],
+            [124.549, 38.095],
+            [124.373, 38.095],
+            [124.373, 37.947]
+          ]]
+        }
+      }
+    ]
+  },
+  "particle_count": 1000,
+
+  "l3_correction_applied": true,
+  "l3_delta_lat": 0.0031,
+  "l3_delta_lon": -0.0018,
+  "similar_incidents_count": 32,
+
+  "weight_l1": 0.0,
+  "weight_l2": 1.0,
+  "weight_l3": 0.0,
+
+  "current_data_source": "KHOA",
+  "weather_data_source": "KMA",
+  "data_freshness_ok": true
+}

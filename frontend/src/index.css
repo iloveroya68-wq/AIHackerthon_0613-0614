@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: #040d1a;
+    background-image:
+      linear-gradient(rgba(34, 211, 238, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34, 211, 238, 0.035) 1px, transparent 1px);
+    background-size: 60px 60px;
+    color: #e2e8f0;
+    font-family: "Inter", "Noto Sans KR", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0a1628;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e3a5f;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #2a5080;
+  }
+
+  /* Leaflet tooltip override */
+  .drift-tooltip {
+    background: #0f2040 !important;
+    border: 1px solid #1e3a6e !important;
+    border-radius: 4px !important;
+    color: #cbd5e1 !important;
+    font-size: 11px !important;
+    box-shadow: none !important;
+  }
+
+  .drift-tooltip::before {
+    border-top-color: #1e3a6e !important;
+  }
+}
+
+@layer components {
+  .input-field {
+    @apply w-full bg-navy-800 border border-navy-600 rounded-md px-3 py-1.5 text-sm text-slate-200
+      placeholder-slate-600 focus:outline-none focus:border-cyan-400/70 focus:ring-2 focus:ring-cyan-400/20
+      transition-all duration-200;
+  }
+
+  .section-label {
+    @apply text-[10px] font-semibold text-slate-500 uppercase tracking-widest;
+  }
+}

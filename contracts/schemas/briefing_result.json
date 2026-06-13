@@ -1,0 +1,177 @@
+{
+  "$defs": {
+    "RagSourceItem": {
+      "description": "A single document or incident record retrieved via RAG.",
+      "properties": {
+        "source_type": {
+          "description": "'incident' or 'document'",
+          "title": "Source Type",
+          "type": "string"
+        },
+        "source_id": {
+          "description": "incident_id or chunk_id",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "summary": {
+          "description": "One-line description of the reference",
+          "title": "Summary",
+          "type": "string"
+        },
+        "category": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "description": "Incident type or document category",
+          "title": "Category"
+        }
+      },
+      "required": ["source_type", "source_id", "summary"],
+      "title": "RagSourceItem",
+      "type": "object"
+    },
+    "BriefingSection": {
+      "description": "One of the four standardised briefing sections.",
+      "properties": {
+        "section_id": {
+          "maximum": 4,
+          "minimum": 1,
+          "title": "Section Id",
+          "type": "integer"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "body": {
+          "description": "Korean-language narrative paragraph",
+          "title": "Body",
+          "type": "string"
+        },
+        "sources": {
+          "description": "Layer tags: L1, L2, L3, L4",
+          "items": {
+            "type": "string"
+          },
+          "title": "Sources",
+          "type": "array"
+        }
+      },
+      "required": [
+        "section_id",
+        "title",
+        "body"
+      ],
+      "title": "BriefingSection",
+      "type": "object"
+    }
+  },
+  "description": "L4 (GPT-4o) operational briefing generated from the EnginePredictionResult JSON.\nLLM must NOT invent numbers — body fields only rephrase values from engine output.\ndisclaimer is mandatory and must reference '현장 지휘관'.",
+  "properties": {
+    "request_id": {
+      "title": "Request Id",
+      "type": "string"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "elapsed_seconds": {
+      "minimum": 0.0,
+      "title": "Elapsed Seconds",
+      "type": "number"
+    },
+    "risk_score": {
+      "description": "Composite risk 0–100",
+      "maximum": 100,
+      "minimum": 0,
+      "title": "Risk Score",
+      "type": "integer"
+    },
+    "confidence_label": {
+      "description": "Human-readable confidence: '높음' | '보통' | '낮음'",
+      "title": "Confidence Label",
+      "type": "string"
+    },
+    "sections": {
+      "description": "Exactly 4 sections: summary, history, rationale, contingency",
+      "items": {
+        "$ref": "#/$defs/BriefingSection"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "title": "Sections",
+      "type": "array"
+    },
+    "model_used": {
+      "default": "gpt-4o",
+      "description": "LLM model identifier",
+      "title": "Model Used",
+      "type": "string"
+    },
+    "prompt_tokens": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Prompt Tokens"
+    },
+    "completion_tokens": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Completion Tokens"
+    },
+    "pdf_url": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Signed URL to generated PDF report",
+      "title": "Pdf Url"
+    },
+    "rag_sources": {
+      "default": [],
+      "description": "RAG-retrieved incidents and documents used to generate this briefing",
+      "items": {
+        "$ref": "#/$defs/RagSourceItem"
+      },
+      "title": "Rag Sources",
+      "type": "array"
+    },
+    "disclaimer": {
+      "description": "Must contain '최종 판단은 현장 지휘관'. Always displayed in UI.",
+      "title": "Disclaimer",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "generated_at",
+    "elapsed_seconds",
+    "risk_score",
+    "confidence_label",
+    "sections",
+    "disclaimer"
+  ],
+  "title": "BriefingResult",
+  "type": "object"
+}

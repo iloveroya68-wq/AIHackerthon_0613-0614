@@ -1,0 +1,121 @@
+{
+  "$defs": {
+    "Coordinate": {
+      "description": "Geographic point. lon/lat order matches GeoJSON [lon, lat].",
+      "properties": {
+        "lon": {
+          "description": "Longitude (decimal degrees)",
+          "maximum": 180.0,
+          "minimum": -180.0,
+          "title": "Lon",
+          "type": "number"
+        },
+        "lat": {
+          "description": "Latitude (decimal degrees)",
+          "maximum": 90.0,
+          "minimum": -90.0,
+          "title": "Lat",
+          "type": "number"
+        }
+      },
+      "required": [
+        "lon",
+        "lat"
+      ],
+      "title": "Coordinate",
+      "type": "object"
+    },
+    "VesselType": {
+      "description": "Vessel / object-in-water type. Controls Leeway coefficient in L1.",
+      "enum": [
+        "소형어선",
+        "표준어선",
+        "구명조끼착용자",
+        "구명뗏목",
+        "레저보트"
+      ],
+      "title": "VesselType",
+      "type": "string"
+    }
+  },
+  "description": "All information a field operator provides when a vessel goes missing.\nThree mandatory fields (last coordinate, time, vessel type) — everything\nelse is optional to lower friction during emergencies.",
+  "properties": {
+    "request_id": {
+      "description": "UUID assigned at intake; echoed in all downstream results",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "vessel_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "V-Pass / AIS vessel ID if known",
+      "examples": [
+        "V-PASS-123456789"
+      ],
+      "title": "Vessel Id"
+    },
+    "last_coordinate": {
+      "$ref": "#/$defs/Coordinate",
+      "description": "Last confirmed GPS position [lon, lat]"
+    },
+    "last_seen_at": {
+      "description": "UTC timestamp of the last confirmed signal",
+      "format": "date-time",
+      "title": "Last Seen At",
+      "type": "string"
+    },
+    "vessel_type": {
+      "$ref": "#/$defs/VesselType"
+    },
+    "tonnage_tons": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Gross tonnage — used to select Leeway sub-range",
+      "title": "Tonnage Tons"
+    },
+    "simulation_hours": {
+      "default": 6,
+      "description": "How many hours ahead to simulate drift",
+      "maximum": 24,
+      "minimum": 1,
+      "title": "Simulation Hours",
+      "type": "integer"
+    },
+    "notes": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Free-text field notes from the operator",
+      "title": "Notes"
+    }
+  },
+  "required": [
+    "last_coordinate",
+    "last_seen_at",
+    "vessel_type"
+  ],
+  "title": "PredictionRequest",
+  "type": "object"
+}

@@ -1,0 +1,11 @@
+# Normalize line endings
+* text=auto
+*.py text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+data/modeling_inputs/processed/cmems/cmems_surface_current_hourly.csv filter=lfs diff=lfs merge=lfs -text
+data/modeling_inputs/raw/cmems/*.nc filter=lfs diff=lfs merge=lfs -text
+engine/artifacts/*.joblib filter=lfs diff=lfs merge=lfs -text

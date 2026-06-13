@@ -1,0 +1,63 @@
+# Production overrides for EC2 deployment
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Requires Docker Compose >= 2.24.0
+#   sudo apt install docker-compose-plugin   (Ubuntu 22.04+)
+#
+# Before first run:
+#   cp .env.example .env
+#   vi .env   # set real passwords, API keys, DJANGO_ALLOWED_HOSTS=<EC2_IP>
+
+services:
+
+  # PostgreSQL — internal only (not reachable from outside EC2)
+  postgres:
+    ports: !reset []
+
+  # Redis — internal only
+  redis:
+    ports: !reset []
+
+  # Django API — gunicorn (Dockerfile CMD), no source mount
+  backend:
+    command: !reset null
+    ports: !reset []
+    volumes: !override
+      - ${DRIFT_DATA_HOST_PATH:-./data/modeling_inputs}:/data/modeling_inputs:ro
+      - ./rag_data:/rag_data:ro
+    environment:
+      DEBUG: "False"
+      DJANGO_ALLOWED_HOSTS: "${DJANGO_ALLOWED_HOSTS:-*}"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import urllib.request;
+          urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/', timeout=5)
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  # Frontend — nginx serving built static files, proxies /api/ to backend
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_USE_MOCK: "false"
+        VITE_API_BASE_URL: ""
+    command: !reset null
+    ports: !override
+      - "80:80"
+      - "443:443"
+    volumes: !override
+      - ./frontend/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      backend:
+        condition: service_healthy

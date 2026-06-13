@@ -1,0 +1,13 @@
+{
+  "request_id": "a1b2c3d4-0001-0001-0001-a1b2c3d40001",
+  "vessel_id": "V-PASS-123456789",
+  "last_coordinate": {
+    "lon": 124.372,
+    "lat": 37.9588
+  },
+  "last_seen_at": "2026-05-21T08:15:00+09:00",
+  "vessel_type": "소형어선",
+  "tonnage_tons": 29.0,
+  "simulation_hours": 6,
+  "notes": "연평도 인근 조업 중 신호 두절. 기상 악화 예보 있음."
+}

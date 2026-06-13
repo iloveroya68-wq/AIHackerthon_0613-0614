@@ -1,0 +1,25 @@
+[project]
+name = "drift-engine"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26,<2",
+    "pydantic>=2.0",
+    "drift-contracts",
+]
+
+[project.optional-dependencies]
+ml = ["joblib>=1.4", "lightgbm>=4.3", "scikit-learn>=1.4"]
+opendrift = ["opendrift>=1.13"]
+data = ["pandas>=2.1", "xarray>=2024.1", "netcdf4>=1.6", "shapely>=2.0", "global-land-mask>=1.0"]
+dev = ["pytest>=8.0", "jsonschema>=4.0"]
+
+[tool.uv.sources]
+drift-contracts = { path = "../contracts", editable = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["drift_engine"]

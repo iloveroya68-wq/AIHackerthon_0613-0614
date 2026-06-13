@@ -1,0 +1,117 @@
+{
+  "forecast_id": "f0000001-0001-0001-0001-f00000010001",
+  "forecasted_at": "2026-05-21T10:42:18+09:00",
+
+  "area_name": "연평도 인근 서해",
+  "bbox": [124.1, 37.6, 124.9, 38.3],
+
+  "time_range_start": "2026-05-21T14:00:00+09:00",
+  "time_range_end": "2026-05-21T17:00:00+09:00",
+  "peak_risk_time": "2026-05-21T15:20:00+09:00",
+
+  "vessel_types_targeted": ["소형어선", "레저보트"],
+
+  "risk_grid": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "risk_level": "고위험",
+          "dri_score": 0.78
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [124.30, 37.85],
+            [124.50, 37.85],
+            [124.50, 38.05],
+            [124.30, 38.05],
+            [124.30, 37.85]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "risk_level": "주의",
+          "dri_score": 0.51
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [124.50, 37.85],
+            [124.70, 37.85],
+            [124.70, 38.05],
+            [124.50, 38.05],
+            [124.50, 37.85]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "risk_level": "관찰",
+          "dri_score": 0.28
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [124.10, 37.65],
+            [124.30, 37.65],
+            [124.30, 37.85],
+            [124.10, 37.85],
+            [124.10, 37.65]
+          ]]
+        }
+      }
+    ]
+  },
+
+  "dri_score": 0.78,
+  "dri_percentile": 78.0,
+
+  "risk_causes": [
+    {
+      "factor": "조류 반전",
+      "description": "15:20 ±20분 조류 반전 예정. 표류체 방향 급변 가능성.",
+      "severity": "고위험"
+    },
+    {
+      "factor": "풍속 강화",
+      "description": "북서풍 최대 16.2 m/s 예보. 소형 어선 표류 위험 증가.",
+      "severity": "주의"
+    },
+    {
+      "factor": "파고 상승",
+      "description": "유의파고 최대 1.9 m 예상 (15:00 전후).",
+      "severity": "주의"
+    }
+  ],
+
+  "recommended_actions": [
+    {
+      "priority": 1,
+      "action": "순찰정 사전 배치",
+      "target": "고위험 해역 북서 경계선"
+    },
+    {
+      "priority": 2,
+      "action": "V-Pass 주의 알림 발송",
+      "target": "해당 해역 조업 선박 142척"
+    },
+    {
+      "priority": 3,
+      "action": "출항 주의 안내 송출",
+      "target": "해양경계방송"
+    }
+  ],
+
+  "max_wind_speed_ms": 16.2,
+  "max_wave_height_m": 1.9,
+  "max_current_speed_kt": 1.4,
+  "tidal_reversal_time": "2026-05-21T15:20:00+09:00",
+
+  "vessels_at_risk_count": 142,
+  "high_risk_area_km2": 28.6
+}

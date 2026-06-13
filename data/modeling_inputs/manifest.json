@@ -1,0 +1,75 @@
+{
+  "package_root": "data\\modeling_inputs",
+  "reference_accident_date": "2023-09-23",
+  "target_collection_period": {
+    "start": "2023-03-23",
+    "end": "2024-03-23",
+    "description": "Reference accident date plus/minus 6 months."
+  },
+  "datasets": {
+    "khoa_weather": {
+      "path": "processed/khoa/khoa_mokpo_weather_hourly.csv",
+      "rows": 9528,
+      "columns": [
+        "row_no",
+        "timestamp",
+        "air_temperature_c",
+        "air_pressure_hpa",
+        "wind_direction_16pt",
+        "wind_direction_deg",
+        "wind_speed_mps",
+        "station_name",
+        "source_file"
+      ],
+      "description": "KHOA hourly Mokpo weather table. Wind direction is normalized from Korean 16-point notation to degrees. Empty KHOA current columns were removed; use CMEMS uo/vo for currents."
+    },
+    "leeway_coefficients": {
+      "path": "processed/leeway/leeway_coefficients.csv",
+      "rows": 8,
+      "columns": [
+        "object_key",
+        "object_type_ko",
+        "leeway_rate",
+        "rate_min",
+        "rate_max",
+        "sigma",
+        "divergence_deg",
+        "jibe_prob_per_hr",
+        "source"
+      ],
+      "description": "Object-type leeway coefficients for wind-driven drift."
+    },
+    "geo": {
+      "land_mask": "processed/geo/land_mask.geojson",
+      "land_boundary_source": "processed/geo/land_boundary_source.geojson",
+      "description": "Land/island mask for stranding checks and polygon clipping."
+    },
+    "cmems_current": {
+      "source": "data\\cmems\\raw\\mokpo_surface_current.nc",
+      "csv": "processed/cmems/cmems_surface_current_hourly.csv",
+      "variables": [
+        "uo",
+        "vo",
+        "vsdx",
+        "vsdy"
+      ],
+      "dimensions": {
+        "time": 17557,
+        "depth": 1,
+        "latitude": 11,
+        "longitude": 18
+      },
+      "time_start": "2022-03-24T00:00:00.000000000",
+      "time_end": "2024-03-24T12:00:00.000000000",
+      "latitude_min": 34.0,
+      "latitude_max": 34.83333206176758,
+      "longitude_min": 125.00001525878906,
+      "longitude_max": 126.41668701171875
+    },
+    "synthetic_accidents": {
+      "path": "processed/accidents/l3_synthetic_accidents.csv",
+      "rows": 1500,
+      "description": "User-provided L3 synthetic accident rows with virtual found coordinates generated from incident position and current/wind conditions."
+    }
+  }
+}

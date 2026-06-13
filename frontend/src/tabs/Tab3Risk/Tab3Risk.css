@@ -1,0 +1,29 @@
+@keyframes pulseGlow {
+  0%   { filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.65)); }
+  50%  { filter: drop-shadow(0 0 14px rgba(239, 68, 68, 1.0)) drop-shadow(0 0 28px rgba(239, 68, 68, 0.5)); }
+  100% { filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.65)); }
+}
+
+@keyframes cautionGlow {
+  0%   { filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.5)); }
+  50%  { filter: drop-shadow(0 0 9px rgba(245, 158, 11, 0.85)); }
+  100% { filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.5)); }
+}
+
+@keyframes watchGlow {
+  0%   { filter: drop-shadow(0 0 3px rgba(74, 222, 128, 0.5)); }
+  50%  { filter: drop-shadow(0 0 10px rgba(74, 222, 128, 0.9)) drop-shadow(0 0 20px rgba(34, 197, 94, 0.4)); }
+  100% { filter: drop-shadow(0 0 3px rgba(74, 222, 128, 0.5)); }
+}
+
+.heatcell-high {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.heatcell-caution {
+  animation: cautionGlow 3s ease-in-out infinite;
+}
+
+.heatcell-watch {
+  animation: watchGlow 3s ease-in-out infinite;
+}

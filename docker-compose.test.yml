@@ -1,0 +1,133 @@
+services:
+  test:
+    image: drift-model-test:local
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        INSTALL_DEV: "true"
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - ./contracts:/contracts
+      - ./engine:/engine
+      - ./data/modeling_inputs:/data/modeling_inputs:ro
+    environment:
+      PYTHONPATH: /:/engine
+      DATABASE_URL: sqlite:////tmp/drift-test.db
+      DJANGO_SECRET_KEY: docker-test-only
+      DEBUG: "False"
+      DRIFT_ENGINE: mock
+      DRIFT_L2_ENGINE: synthetic
+      ENGINE_PARTICLE_COUNT: "200"
+      ENGINE_L3_MIN_TRAINING_RECORDS: "30"
+      DATA_GO_KR_API_KEY: ""
+      DRIFT_TEST_DATA_ROOT: /data/modeling_inputs
+    command:
+      - pytest
+      - tests/test_real_engine_integration.py
+      - tests/test_public_marine_data.py
+      - tests/test_mock_engine.py
+      - tests/test_predictions.py
+      - /engine/tests
+      - -q
+
+  test-opendrift:
+    extends:
+      service: test
+    environment:
+      PYTHONPATH: /:/engine
+      DATABASE_URL: sqlite:////tmp/drift-opendrift-test.db
+      DJANGO_SECRET_KEY: docker-test-only
+      DEBUG: "False"
+      DRIFT_ENGINE: real
+      DRIFT_L2_ENGINE: opendrift
+      ENGINE_PARTICLE_COUNT: "100"
+      ENGINE_L3_MIN_TRAINING_RECORDS: "30"
+      DATA_GO_KR_API_KEY: ""
+    command:
+      - python
+      - -c
+      - |
+        from datetime import datetime
+        from pathlib import Path
+        from zoneinfo import ZoneInfo
+        from contracts.models import PredictionRequest, VesselType
+        from drift_engine import RealDriftEngine
+        from drift_engine.config import EngineConfig
+        from drift_engine.data_sources import build_data_bundle
+
+        bundle = build_data_bundle("historical", Path("/data/modeling_inputs"))
+        request = PredictionRequest(
+            last_coordinate={"lon": 126.2, "lat": 34.5},
+            last_seen_at=datetime(2023, 9, 23, 12, tzinfo=ZoneInfo("Asia/Seoul")),
+            vessel_type=VesselType.SMALL_FISHING,
+            simulation_hours=1,
+        )
+        result = RealDriftEngine(
+            EngineConfig(particle_count=100, l2_engine="opendrift"),
+            data_bundle=bundle,
+        ).predict(request)
+        assert result.particle_count == 100
+        assert len(result.time_steps or []) == 1
+        assert result.search_zones["type"] == "FeatureCollection"
+        assert result.current_data_source.startswith("CMEMS:")
+        assert result.weather_data_source.startswith("KHOA-HISTORY:")
+        print("Historical CMEMS/KHOA OpenDrift smoke test passed")
+
+  train-smoke:
+    extends:
+      service: test
+    environment:
+      PYTHONPATH: /:/engine
+      DATABASE_URL: sqlite:////tmp/drift-train-test.db
+    command:
+      - sh
+      - -c
+      - >-
+        python /engine/scripts/generate_synthetic_dataset.py
+        --output /tmp/l3.csv --records 100 &&
+        python /engine/scripts/train_l3_model.py
+        --input /tmp/l3.csv
+        --output /tmp/l3.joblib
+        --metadata /tmp/model_metadata.json &&
+        test -s /tmp/l3.joblib &&
+        test -s /tmp/model_metadata.json &&
+        python /engine/scripts/smoke_l3_artifact.py
+        --model /tmp/l3.joblib
+        --metadata /tmp/model_metadata.json
+
+  demo-train:
+    extends:
+      service: test
+    command:
+      - sh
+      - -c
+      - >-
+        python /engine/scripts/generate_synthetic_dataset.py
+        --output /engine/artifacts/demo_training.csv
+        --records 2000 --seed 42 &&
+        python /engine/scripts/train_l3_model.py
+        --input /engine/artifacts/demo_training.csv
+        --output /engine/artifacts/l3_correction.joblib
+        --metadata /engine/artifacts/model_metadata.json &&
+        python /engine/scripts/smoke_l3_artifact.py
+        --model /engine/artifacts/l3_correction.joblib
+        --metadata /engine/artifacts/model_metadata.json
+
+  demo-smoke:
+    extends:
+      service: test
+    environment:
+      PYTHONPATH: /:/engine
+      DRIFT_ENGINE: real
+      DRIFT_L2_ENGINE: opendrift
+      DRIFT_DATA_SOURCE: historical
+      DRIFT_DATA_ROOT: /data/modeling_inputs
+      DRIFT_MODEL_PATH: /engine/artifacts/l3_correction.joblib
+      DRIFT_MODEL_METADATA_PATH: /engine/artifacts/model_metadata.json
+      ENGINE_PARTICLE_COUNT: "100"
+      ENGINE_L3_MIN_TRAINING_RECORDS: "30"
+    command:
+      - python
+      - /engine/scripts/smoke_demo_pipeline.py

@@ -1,0 +1,256 @@
+{
+  "$defs": {
+    "Coordinate": {
+      "description": "Geographic point. lon/lat order matches GeoJSON [lon, lat].",
+      "properties": {
+        "lon": {
+          "description": "Longitude (decimal degrees)",
+          "maximum": 180.0,
+          "minimum": -180.0,
+          "title": "Lon",
+          "type": "number"
+        },
+        "lat": {
+          "description": "Latitude (decimal degrees)",
+          "maximum": 90.0,
+          "minimum": -90.0,
+          "title": "Lat",
+          "type": "number"
+        }
+      },
+      "required": [
+        "lon",
+        "lat"
+      ],
+      "title": "Coordinate",
+      "type": "object"
+    },
+    "DriftVector": {
+      "description": "Resultant drift direction and speed from L1 physics model.",
+      "properties": {
+        "direction_deg": {
+          "description": "True bearing (°), 0 = North",
+          "exclusiveMaximum": 360.0,
+          "minimum": 0.0,
+          "title": "Direction Deg",
+          "type": "number"
+        },
+        "speed_knots": {
+          "description": "Resultant drift speed (knots)",
+          "minimum": 0.0,
+          "title": "Speed Knots",
+          "type": "number"
+        },
+        "current_speed_knots": {
+          "minimum": 0.0,
+          "title": "Current Speed Knots",
+          "type": "number"
+        },
+        "current_direction_deg": {
+          "exclusiveMaximum": 360.0,
+          "minimum": 0.0,
+          "title": "Current Direction Deg",
+          "type": "number"
+        },
+        "wind_speed_ms": {
+          "minimum": 0.0,
+          "title": "Wind Speed Ms",
+          "type": "number"
+        },
+        "wind_direction_deg": {
+          "exclusiveMaximum": 360.0,
+          "minimum": 0.0,
+          "title": "Wind Direction Deg",
+          "type": "number"
+        },
+        "leeway_coefficient": {
+          "description": "Leeway fraction (e.g. 0.032)",
+          "maximum": 0.1,
+          "minimum": 0.0,
+          "title": "Leeway Coefficient",
+          "type": "number"
+        }
+      },
+      "required": [
+        "direction_deg",
+        "speed_knots",
+        "current_speed_knots",
+        "current_direction_deg",
+        "wind_speed_ms",
+        "wind_direction_deg",
+        "leeway_coefficient"
+      ],
+      "title": "DriftVector",
+      "type": "object"
+    },
+    "TimeStepResult": {
+      "description": "Pre-computed search zones for a single time step (used by frontend time slider).",
+      "properties": {
+        "hours": {
+          "description": "Hours after last known position",
+          "maximum": 24,
+          "minimum": 1,
+          "title": "Hours",
+          "type": "integer"
+        },
+        "search_zones": {
+          "additionalProperties": true,
+          "title": "Search Zones",
+          "type": "object"
+        },
+        "predicted_center": {
+          "$ref": "#/$defs/Coordinate"
+        },
+        "drift_distance_nm": {
+          "description": "Total drift distance in nautical miles",
+          "minimum": 0.0,
+          "title": "Drift Distance Nm",
+          "type": "number"
+        }
+      },
+      "required": [
+        "hours",
+        "search_zones",
+        "predicted_center",
+        "drift_distance_nm"
+      ],
+      "title": "TimeStepResult",
+      "type": "object"
+    }
+  },
+  "description": "Output of the drift engine package (L1 physics + L2 Monte Carlo + L3 ML).\nBackend consumes this; engine produces it. They share ONLY this contract.\nsearch_zones is a GeoJSON FeatureCollection with 3 priority polygons.\nFeature properties must conform to SearchZoneProperties.",
+  "properties": {
+    "request_id": {
+      "title": "Request Id",
+      "type": "string"
+    },
+    "computed_at": {
+      "format": "date-time",
+      "title": "Computed At",
+      "type": "string"
+    },
+    "elapsed_seconds": {
+      "description": "Wall-clock engine runtime",
+      "minimum": 0.0,
+      "title": "Elapsed Seconds",
+      "type": "number"
+    },
+    "time_horizon_hours": {
+      "maximum": 24,
+      "minimum": 1,
+      "title": "Time Horizon Hours",
+      "type": "integer"
+    },
+    "drift_vector": {
+      "$ref": "#/$defs/DriftVector"
+    },
+    "predicted_center": {
+      "$ref": "#/$defs/Coordinate",
+      "description": "L1 deterministic endpoint before Monte Carlo spread"
+    },
+    "search_zones": {
+      "additionalProperties": true,
+      "description": "GeoJSON FeatureCollection with 3 priority search polygons",
+      "title": "Search Zones",
+      "type": "object"
+    },
+    "particle_count": {
+      "default": 1000,
+      "description": "Monte Carlo particles surviving land mask",
+      "minimum": 0,
+      "title": "Particle Count",
+      "type": "integer"
+    },
+    "l3_correction_applied": {
+      "description": "False when training data < 30 records (L3 weight = 0)",
+      "title": "L3 Correction Applied",
+      "type": "boolean"
+    },
+    "l3_delta_lat": {
+      "default": 0.0,
+      "description": "ML latitude correction (°)",
+      "title": "L3 Delta Lat",
+      "type": "number"
+    },
+    "l3_delta_lon": {
+      "default": 0.0,
+      "description": "ML longitude correction (°)",
+      "title": "L3 Delta Lon",
+      "type": "number"
+    },
+    "similar_incidents_count": {
+      "default": 0,
+      "description": "Number of historical incidents used for L3 training",
+      "minimum": 0,
+      "title": "Similar Incidents Count",
+      "type": "integer"
+    },
+    "weight_l1": {
+      "default": 0.0,
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Weight L1",
+      "type": "number"
+    },
+    "weight_l2": {
+      "default": 1.0,
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Weight L2",
+      "type": "number"
+    },
+    "weight_l3": {
+      "default": 0.0,
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Weight L3",
+      "type": "number"
+    },
+    "current_data_source": {
+      "default": "KHOA",
+      "description": "Tidal current API source",
+      "title": "Current Data Source",
+      "type": "string"
+    },
+    "weather_data_source": {
+      "default": "KMA",
+      "description": "Meteorological API source",
+      "title": "Weather Data Source",
+      "type": "string"
+    },
+    "data_freshness_ok": {
+      "description": "False when live API unavailable and CSV fallback was used",
+      "title": "Data Freshness Ok",
+      "type": "boolean"
+    },
+    "time_steps": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/TimeStepResult"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Per-hour search zones for time slider; hours 1..simulation_hours",
+      "title": "Time Steps"
+    }
+  },
+  "required": [
+    "request_id",
+    "computed_at",
+    "elapsed_seconds",
+    "time_horizon_hours",
+    "drift_vector",
+    "predicted_center",
+    "search_zones",
+    "l3_correction_applied",
+    "data_freshness_ok"
+  ],
+  "title": "EnginePredictionResult",
+  "type": "object"
+}

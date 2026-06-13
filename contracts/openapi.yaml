@@ -1,0 +1,384 @@
+openapi: "3.1.0"
+info:
+  title: DRIFT — Maritime SAR Decision Support API
+  version: "0.1.0"
+  description: |
+    Probabilistic search-zone calculation and AI operational briefing
+    for maritime Search and Rescue (SAR) commanders.
+
+    **Data contract rule**: All geographic data is GeoJSON FeatureCollection
+    with coordinates in [longitude, latitude] order (RFC 7946).
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development
+  - url: https://api.drift.example.com/v1
+    description: Production (placeholder)
+
+tags:
+  - name: predictions
+    description: Drift prediction lifecycle (L1–L3 engine)
+  - name: briefings
+    description: L4 AI operational briefing
+  - name: risk-forecasts
+    description: P1 proactive risk heatmap
+  - name: chat
+    description: GMS OpenAI-compatible SAR assistant chat
+
+paths:
+  /chat/:
+    post:
+      summary: Send a message to the SAR assistant
+      operationId: createChatMessage
+      tags: [chat]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [system_prompt, user_message]
+              properties:
+                system_prompt:
+                  type: string
+                history:
+                  type: array
+                  items:
+                    type: object
+                    required: [role, text]
+                    properties:
+                      role:
+                        type: string
+                        enum: [user, model]
+                      text:
+                        type: string
+                user_message:
+                  type: string
+      responses:
+        "200":
+          description: GMS model response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message, model]
+                properties:
+                  message:
+                    type: string
+                  model:
+                    type: string
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "502":
+          description: GMS upstream request failed
+
+  /predictions/:
+    post:
+      summary: Submit a new drift prediction request
+      operationId: createPrediction
+      tags: [predictions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PredictionRequest"
+            example:
+              $ref: "#/components/examples/PredictionRequestExample"
+      responses:
+        "201":
+          description: Prediction completed and persisted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnginePredictionResult"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /predictions/{request_id}/:
+    get:
+      summary: Poll for prediction result
+      operationId: getPrediction
+      tags: [predictions]
+      parameters:
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        "200":
+          description: Prediction complete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnginePredictionResult"
+        "202":
+          description: Still computing
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /predictions/{request_id}/briefing/:
+    post:
+      summary: Generate L4 AI operational briefing for a completed prediction
+      operationId: createBriefing
+      tags: [briefings]
+      parameters:
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        "201":
+          description: Briefing generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BriefingResult"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Prediction not yet complete
+
+  /risk/forecast/:
+    get:
+      summary: Generate P1 proactive risk heatmap
+      operationId: getRiskForecast
+      tags: [risk-forecasts]
+      parameters:
+        - name: area_name
+          in: query
+          schema:
+            type: string
+        - name: bbox
+          in: query
+          description: Comma-separated min_lon,min_lat,max_lon,max_lat
+          schema:
+            type: string
+        - name: time_range_start
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: time_range_end
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: vessel_types
+          in: query
+          description: Comma-separated vessel types
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Risk forecast result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskForecastResult"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+components:
+  parameters:
+    RequestId:
+      name: request_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    ValidationError:
+      description: Input validation failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorDetail"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorDetail"
+
+  examples:
+    PredictionRequestExample:
+      summary: Yeongpyeong-do fishing vessel
+      value:
+        request_id: "a1b2c3d4-0001-0001-0001-a1b2c3d40001"
+        vessel_id: "V-PASS-123456789"
+        last_coordinate:
+          lon: 126.2
+          lat: 34.5
+        last_seen_at: "2023-09-23T12:00:00+09:00"
+        vessel_type: "소형어선"
+        tonnage_tons: 29.0
+        simulation_hours: 6
+
+  schemas:
+    # -----------------------------------------------------------------------
+    # Inline lightweight schemas (full schemas are in contracts/schemas/*.json)
+    # -----------------------------------------------------------------------
+    ErrorDetail:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: string
+
+    # Coordinate
+    Coordinate:
+      type: object
+      required: [lon, lat]
+      properties:
+        lon:
+          type: number
+          minimum: -180
+          maximum: 180
+        lat:
+          type: number
+          minimum: -90
+          maximum: 90
+
+    # GeoJSON FeatureCollection (permissive — detailed validation in Pydantic)
+    GeoJSONFeatureCollection:
+      type: object
+      required: [type, features]
+      properties:
+        type:
+          type: string
+          enum: [FeatureCollection]
+        features:
+          type: array
+          items:
+            type: object
+
+    # PredictionRequest (abbreviated — authoritative in contracts/schemas/)
+    PredictionRequest:
+      type: object
+      required: [last_coordinate, last_seen_at, vessel_type]
+      properties:
+        request_id:
+          type: string
+          format: uuid
+        vessel_id:
+          type: string
+          nullable: true
+        last_coordinate:
+          $ref: "#/components/schemas/Coordinate"
+        last_seen_at:
+          type: string
+          format: date-time
+        vessel_type:
+          type: string
+          enum:
+            - 소형어선
+            - 표준어선
+            - 구명조끼착용자
+            - 구명뗏목
+            - 레저보트
+        tonnage_tons:
+          type: number
+          minimum: 0
+          nullable: true
+        simulation_hours:
+          type: integer
+          minimum: 1
+          maximum: 24
+          default: 6
+
+    # EnginePredictionResult (abbreviated)
+    EnginePredictionResult:
+      type: object
+      required:
+        - request_id
+        - computed_at
+        - elapsed_seconds
+        - time_horizon_hours
+        - drift_vector
+        - predicted_center
+        - search_zones
+        - l3_correction_applied
+        - data_freshness_ok
+      properties:
+        request_id:
+          type: string
+        computed_at:
+          type: string
+          format: date-time
+        elapsed_seconds:
+          type: number
+        time_horizon_hours:
+          type: integer
+        search_zones:
+          $ref: "#/components/schemas/GeoJSONFeatureCollection"
+        l3_correction_applied:
+          type: boolean
+        data_freshness_ok:
+          type: boolean
+
+    # BriefingResult (abbreviated)
+    BriefingResult:
+      type: object
+      required:
+        - request_id
+        - generated_at
+        - elapsed_seconds
+        - risk_score
+        - confidence_label
+        - sections
+        - disclaimer
+      properties:
+        request_id:
+          type: string
+        generated_at:
+          type: string
+          format: date-time
+        risk_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        confidence_label:
+          type: string
+        sections:
+          type: array
+          minItems: 4
+          maxItems: 4
+          items:
+            type: object
+            required: [section_id, title, body]
+            properties:
+              section_id:
+                type: integer
+              title:
+                type: string
+              body:
+                type: string
+        disclaimer:
+          type: string
+
+    # RiskForecastResult (abbreviated)
+    RiskForecastResult:
+      type: object
+      required:
+        - forecast_id
+        - forecasted_at
+        - area_name
+        - risk_grid
+        - dri_score
+        - risk_causes
+        - recommended_actions
+      properties:
+        forecast_id:
+          type: string
+        forecasted_at:
+          type: string
+          format: date-time
+        area_name:
+          type: string
+        risk_grid:
+          $ref: "#/components/schemas/GeoJSONFeatureCollection"
+        dri_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        dri_percentile:
+          type: number
+          minimum: 0
+          maximum: 100

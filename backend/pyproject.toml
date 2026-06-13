@@ -1,0 +1,41 @@
+[project]
+name = "drift-backend"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "django>=5.0,<6.0",
+    "djangorestframework>=3.15",
+    "django-environ>=0.11",
+    "django-cors-headers>=4.3",
+    "psycopg[binary]>=3.2",
+    "pydantic>=2.0",
+    "gunicorn>=21.2",
+    "drift-contracts",
+    "drift-engine[data,ml,opendrift]",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-django>=4.8",
+    "ruff>=0.5",
+    "httpx>=0.27",
+    "jsonschema>=4.0",
+]
+
+[tool.uv.sources]
+drift-contracts = { path = "../contracts", editable = true }
+drift-engine = { path = "../engine", editable = true }
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "drift_backend.settings"
+pythonpath = [".", ".."]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+ignore = ["E501"]
