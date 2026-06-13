@@ -470,11 +470,7 @@ function BriefingLayout({
                 { label: "조류", value: `${dv.current_speed_knots.toFixed(1)}kt` },
                 { label: "풍속", value: `${dv.wind_speed_ms.toFixed(1)}m/s` },
               ],
-              2: [
-                { label: "표류 거리", value: `${distKm}km` },
-                { label: "예측 시간", value: `+${prediction.time_horizon_hours}h` },
-                { label: "신뢰도", value: briefing.confidence_label },
-              ],
+              2: [],
               3: [
                 { label: "누적 확률", value: `${z1prob}%` },
                 { label: "수색 면적", value: zone1 ? `${zone1.properties.area_km2.toFixed(1)}km²` : "—" },
