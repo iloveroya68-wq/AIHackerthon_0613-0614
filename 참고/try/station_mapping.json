@@ -1,0 +1,23 @@
+{
+  "region": "mokpo",
+  "label": "목포 해역",
+  "demo_bbox": [125.0, 33.5, 127.5, 35.5],
+  "khoa_stations": [
+    {
+      "name": "목포북항북측",
+      "lat": 34.81461,
+      "lon": 126.36680,
+      "obs_interval_min": 1,
+      "note": "데모 기준 관측소"
+    }
+  ],
+  "kma_stations": [
+    {
+      "stn": "530350",
+      "name": "목포",
+      "lat": 34.8146,
+      "lon": 126.3925,
+      "obs_interval_min": 1
+    }
+  ]
+}
